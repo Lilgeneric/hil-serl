@@ -7,6 +7,7 @@ from franka_env.envs.wrappers import (
     Quat2EulerWrapper,
     SpacemouseIntervention,
     MultiCameraBinaryRewardClassifierWrapper,
+    SpacemouseHumanClassifierWrapper,
     GripperCloseEnv
 )
 from franka_env.envs.relative_env import RelativeFrame
@@ -19,34 +20,36 @@ from experiments.config import DefaultTrainingConfig
 from experiments.ram_insertion.wrapper import RAMEnv
 
 class EnvConfig(DefaultEnvConfig):
-    SERVER_URL = "http://127.0.0.2:5000/"
+    SERVER_URL = "http://127.0.0.1:5000/"
     REALSENSE_CAMERAS = {
         "wrist_1": {
-            "serial_number": "127122270146",
+            "serial_number": "419522072057",
             "dim": (1280, 720),
             "exposure": 40000,
         },
         "wrist_2": {
-            "serial_number": "127122270350",
+            "serial_number": "342222072153",
             "dim": (1280, 720),
             "exposure": 40000,
         },
     }
     IMAGE_CROP = {
-        "wrist_1": lambda img: img[150:450, 350:1100],
-        "wrist_2": lambda img: img[100:500, 400:900],
+        "wrist_1": lambda img: img[:500,300:1200],
+        "wrist_2": lambda img: img[300:,100:]
+        # "wrist_1": lambda img: img[150:450, 350:1100],
+        # "wrist_2": lambda img: img[100:500, 400:900],
     }
-    TARGET_POSE = np.array([0.5881241235410154,-0.03578590131997776,0.27843494179085326, np.pi, 0, 0])
-    GRASP_POSE = np.array([0.5857508505445138,-0.22036261105675414,0.2731021902359492, np.pi, 0, 0])
-    RESET_POSE = TARGET_POSE + np.array([0, 0, 0.05, 0, 0.05, 0])
-    ABS_POSE_LIMIT_LOW = TARGET_POSE - np.array([0.03, 0.02, 0.01, 0.01, 0.1, 0.4])
-    ABS_POSE_LIMIT_HIGH = TARGET_POSE + np.array([0.03, 0.02, 0.05, 0.01, 0.1, 0.4])
-    RANDOM_RESET = True
+    TARGET_POSE = np.array([0.5797031854194268,-0.02839514675086311,0.15690150509145773,-3.1415868793498545,0.0012400346781686888,0.01683072472901448])
+    GRASP_POSE = TARGET_POSE + np.array([0, 0, 0.05, 0, 0, 0])
+    RESET_POSE = TARGET_POSE + np.array([0, 0, 0.05, 0, 0, 0])
+    ABS_POSE_LIMIT_LOW = TARGET_POSE - np.array([0.3, 0.2, 0.1, 0.01, 0.1, 0.4])
+    ABS_POSE_LIMIT_HIGH = TARGET_POSE + np.array([0.3, 0.2, 0.5, 0.01, 0.1, 0.4])
+    RANDOM_RESET = False
     RANDOM_XY_RANGE = 0.02
     RANDOM_RZ_RANGE = 0.05
     ACTION_SCALE = (0.01, 0.06, 1)
     DISPLAY_IMAGE = True
-    MAX_EPISODE_LENGTH = 100
+    MAX_EPISODE_LENGTH = 150
     COMPLIANCE_PARAM = {
         "translational_stiffness": 2000,
         "translational_damping": 89,
@@ -122,8 +125,10 @@ class TrainConfig(DefaultTrainingConfig):
 
             def reward_func(obs):
                 sigmoid = lambda x: 1 / (1 + jnp.exp(-x))
+                print("Reward signal:",int(sigmoid(classifier(obs)[0]) > 0.6 and obs['state'][0, 6] > 0.04)," Classifier reward:", sigmoid(classifier(obs)[0]))
                 # added check for z position to further robustify classifier, but should work without as well
-                return int(sigmoid(classifier(obs)) > 0.85 and obs['state'][0, 6] > 0.04)
+                return int(sigmoid(classifier(obs)[0]) > 0.6 and obs['state'][0, 6] > 0.04)
 
-            env = MultiCameraBinaryRewardClassifierWrapper(env, reward_func)
+            # env = MultiCameraBinaryRewardClassifierWrapper(env, reward_func)
+            env = SpacemouseHumanClassifierWrapper(env)
         return env
