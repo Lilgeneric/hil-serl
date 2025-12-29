@@ -13,6 +13,9 @@
 * [阶段三：策略训练与人工干预](https://www.google.com/search?q=%23%E9%98%B6%E6%AE%B5%E4%B8%89%E7%AD%96%E7%95%A5%E8%AE%AD%E7%BB%83%E4%B8%8E%E4%BA%BA%E5%B7%A5%E5%B9%B2%E9%A2%84-policy-training)
 
 
+killall -9 roscore
+killall -9 rosmaster
+
 
 ---
 

@@ -33,6 +33,33 @@ class HumanClassifierWrapper(gym.Wrapper):
         obs, info = self.env.reset(**kwargs)
         return obs, info
     
+class SpacemouseHumanClassifierWrapper(gym.Wrapper):
+    """
+    This wrapper uses the spaceouse button to set the reward.
+    left button: success
+    right button: failure
+    """
+
+    def __init__(self, env: Env, target_hz = None):
+        super().__init__(env)
+        self.target_hz = target_hz
+
+    def step(self, action):
+        start_time = time.time()
+        obs, rew, done, truncated, info = self.env.step(action)
+        rew = info['left']
+        done = done or rew or info['right']
+        info['succeed'] = bool(rew)
+        if self.target_hz is not None:
+            time.sleep(max(0, 1/self.target_hz - (time.time() - start_time)))
+            
+        return obs, rew, done, truncated, info
+
+    def reset(self, **kwargs):
+        obs, info = self.env.reset(**kwargs)
+        info['succeed'] = False
+        return obs, info
+    
 class MultiCameraBinaryRewardClassifierWrapper(gym.Wrapper):
     """
     This wrapper uses the camera images to compute the reward,

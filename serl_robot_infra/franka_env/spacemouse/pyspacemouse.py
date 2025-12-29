@@ -548,22 +548,45 @@ device_specs = {
             "roll": AxisSpec(channel=1, byte1=9, byte2=10, scale=-1),
             "yaw": AxisSpec(channel=1, byte1=11, byte2=12, scale=1),
         },
+        # button_mapping=[
+        #     ButtonSpec(channel=3, byte=1, bit=0),  # MENU
+        #     ButtonSpec(channel=3, byte=3, bit=7),  # ALT
+        #     ButtonSpec(channel=3, byte=4, bit=1),  # CTRL
+        #     ButtonSpec(channel=3, byte=4, bit=0),  # SHIFT
+        #     ButtonSpec(channel=3, byte=3, bit=6),  # ESC
+        #     ButtonSpec(channel=3, byte=2, bit=4),  # 1
+        #     ButtonSpec(channel=3, byte=2, bit=5),  # 2
+        #     ButtonSpec(channel=3, byte=2, bit=6),  # 3
+        #     ButtonSpec(channel=3, byte=2, bit=7),  # 4
+        #     ButtonSpec(channel=3, byte=2, bit=0),  # ROLL CLOCKWISE
+        #     ButtonSpec(channel=3, byte=1, bit=2),  # TOP
+        #     ButtonSpec(channel=3, byte=4, bit=2),  # ROTATION
+        #     ButtonSpec(channel=3, byte=1, bit=5),  # FRONT
+        #     ButtonSpec(channel=3, byte=1, bit=4),  # REAR
+        #     ButtonSpec(channel=3, byte=1, bit=1),  # FIT
+        # ],
         button_mapping=[
-            ButtonSpec(channel=3, byte=1, bit=0),  # MENU
-            ButtonSpec(channel=3, byte=3, bit=7),  # ALT
-            ButtonSpec(channel=3, byte=4, bit=1),  # CTRL
-            ButtonSpec(channel=3, byte=4, bit=0),  # SHIFT
-            ButtonSpec(channel=3, byte=3, bit=6),  # ESC
-            ButtonSpec(channel=3, byte=2, bit=4),  # 1
-            ButtonSpec(channel=3, byte=2, bit=5),  # 2
-            ButtonSpec(channel=3, byte=2, bit=6),  # 3
-            ButtonSpec(channel=3, byte=2, bit=7),  # 4
-            ButtonSpec(channel=3, byte=2, bit=0),  # ROLL CLOCKWISE
-            ButtonSpec(channel=3, byte=1, bit=2),  # TOP
-            ButtonSpec(channel=3, byte=4, bit=2),  # ROTATION
-            ButtonSpec(channel=3, byte=1, bit=5),  # FRONT
-            ButtonSpec(channel=3, byte=1, bit=4),  # REAR
-            ButtonSpec(channel=3, byte=1, bit=1),  # FIT
+            ButtonSpec(channel=3, byte=1, bit=0),  # LEFT
+            ButtonSpec(channel=3, byte=1, bit=1),  # RIGHT
+        ],  # FIT
+        axis_scale=350.0,
+    ),
+
+    "SpaceMouse Wireless BT": DeviceSpec(
+        name="SpaceMouse Wireless BT",
+        hid_id=[0x256F, 0xC63A],  
+        led_id=[0x8, 0x4B],
+        mappings={
+            "x": AxisSpec(channel=1, byte1=1, byte2=2, scale=1),
+            "y": AxisSpec(channel=1, byte1=3, byte2=4, scale=-1),
+            "z": AxisSpec(channel=1, byte1=5, byte2=6, scale=-1),
+            "pitch": AxisSpec(channel=1, byte1=7, byte2=8, scale=-1),
+            "roll": AxisSpec(channel=1, byte1=9, byte2=10, scale=-1),
+            "yaw": AxisSpec(channel=1, byte1=11, byte2=12, scale=1),
+        },
+        button_mapping=[
+            ButtonSpec(channel=3, byte=1, bit=0),  # 按钮1
+            ButtonSpec(channel=3, byte=1, bit=1),  # 按钮2
         ],
         axis_scale=350.0,
     ),
