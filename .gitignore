@@ -1,0 +1,23 @@
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 编译/安装元数据
+*.egg-info/
+build/
+dist/
+
+# HIL-SERL 实验生成的数据 (非常重要，防止上传GB级数据)
+**/saves/
+**/classifier_ckpt/
+**/classifier_data/
+**/demo_data/
+**/first_run/
+**/*.pkl
+**/*.npy
+**/*.mp4
+
+# 操作系统临时文件
+.DS_Store
