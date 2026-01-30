@@ -2,26 +2,31 @@
 
 本文档旨在记录并复现 [HIL-SERL](https://github.com/rail-berkeley/hil-serl) (Human-in-the-Loop SERL) 的官方入门任务：**RAM Insertion (内存条插入)**。本教程涵盖环境安装、硬件配置、数据采集及强化学习训练的全流程。
 
-## 📋 目录
+## 目录
 
-1. [环境依赖与安装](https://www.google.com/search?q=%231-%E7%8E%AF%E5%A2%83%E4%BE%9D%E8%B5%96%E4%B8%8E%E5%AE%89%E8%A3%85)
-2. [硬件准备与服务器启动](https://www.google.com/search?q=%232-%E7%A1%AC%E4%BB%B6%E5%87%86%E5%A4%87%E4%B8%8E%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%90%AF%E5%8A%A8)
-3. [实验参数配置](https://www.google.com/search?q=%233-%E5%AE%9E%E9%AA%8C%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE)
-4. [训练流程](https://www.google.com/search?q=%234-%E8%AE%AD%E7%BB%83%E6%B5%81%E7%A8%8B)
-* [阶段一：训练奖励分类器](https://www.google.com/search?q=%23%E9%98%B6%E6%AE%B5%E4%B8%80%E8%AE%AD%E7%BB%83%E5%A5%96%E5%8A%B1%E5%88%86%E7%B1%BB%E5%99%A8-reward-classifier)
-* [阶段二：录制人类演示](https://www.google.com/search?q=%23%E9%98%B6%E6%AE%B5%E4%BA%8C%E5%BD%95%E5%88%B6%E4%BA%BA%E7%B1%BB%E6%BC%94%E7%A4%BA-demonstrations)
-* [阶段三：策略训练与人工干预](https://www.google.com/search?q=%23%E9%98%B6%E6%AE%B5%E4%B8%89%E7%AD%96%E7%95%A5%E8%AE%AD%E7%BB%83%E4%B8%8E%E4%BA%BA%E5%B7%A5%E5%B9%B2%E9%A2%84-policy-training)
+1. **[环境依赖与安装](#1-环境依赖与安装)**
+   * [Python 基础依赖](#11-安装-python-依赖)
+   * [USB 权限配置](#12-配置-usb-权限-udev-rules-️-至关重要)
+   * [HIL-SERL 核心与驱动依赖](#13-hil-serl-核心与驱动依赖)
 
+2. **[硬件准备与服务器启动](#2-硬件准备与服务器启动)**
+   * [硬件检查](#21-硬件检查)
+   * [启动 Robot Server](#22-启动-robot-server)
 
-killall -9 roscore
-killall -9 rosmaster
+3. **[实验参数配置](#3-实验参数配置)**
 
+4. **[训练流程](#4-训练流程)**
+   * [阶段一：训练奖励分类器](#阶段一训练奖励分类器-reward-classifier)
+   * [阶段二：录制人类演示](#阶段二录制人类演示-demonstrations)
+   * [阶段三：策略训练与人工干预](#阶段三策略训练与人工干预-policy-training)
+
+5. **[常用指令与故障排查](#5-常用指令与故障排查)**
 
 ---
 
 ## 1. 环境依赖与安装
 
-在运行代码之前，需要安装必要的 Python 库并配置硬件访问权限。
+在运行代码之前，需要安装必要的 Python 库、配置硬件访问权限以及安装 Franka 机器人相关的底层驱动。
 
 ### 1.1 安装 Python 依赖
 
@@ -34,13 +39,12 @@ pip install pyrealsense2
 
 ```
 
-### 1.2 配置 USB 权限 (Udev Rules) ⚠️ **至关重要**
-
+### 1.2 配置 USB 权限 (Udev Rules) 
 仅仅安装 Python 包不足以让代码直接访问硬件，必须配置 Udev 规则，否则会报错（如 `RuntimeError: No device detected` 或权限拒绝）。
 
 1. **下载规则文件**：
 ```bash
-sudo curl -o /etc/udev/rules.d/99-realsense-libusb.rules https://raw.githubusercontent.com/IntelRealSense/librealsense/master/config/99-realsense-libusb.rules
+sudo curl -o /etc/udev/rules.d/99-realsense-libusb.rules [https://raw.githubusercontent.com/IntelRealSense/librealsense/master/config/99-realsense-libusb.rules](https://raw.githubusercontent.com/IntelRealSense/librealsense/master/config/99-realsense-libusb.rules)
 
 ```
 
@@ -55,10 +59,36 @@ sudo udevadm control --reload-rules && udevadm trigger
 > **提示**：执行完上述命令后，请**拔掉并重新插入**摄像头 USB 接口以确保规则生效。
 
 
-3. **hilserl其他环境安装**：
-* **核心仓库**: [HIL-SERL GitHub](https://github.com/rail-berkeley/hil-serl)
-* **机器人基础设施**: [SERL Robot Infra](https://github.com/rail-berkeley/hil-serl/blob/main/serl_robot_infra/README.md)
-* **Franka 控制器**: [SERL Franka Controllers](https://github.com/rail-berkeley/serl_franka_controllers)
+
+### 1.3 HIL-SERL 核心与驱动依赖
+
+请依次安装以下仓库，注意对应的分支和版本要求：
+
+* **HIL-SERL 核心仓库**
+* 地址: [https://github.com/rail-berkeley/hil-serl](https://github.com/rail-berkeley/hil-serl)
+* 说明: 项目主代码库，请参考 README 的 "Overview and Code Structure" 部分。
+
+
+* **SERL Robot Infra**
+* 地址: [serl_robot_infra/README.md](https://github.com/rail-berkeley/hil-serl/blob/main/serl_robot_infra/README.md)
+* 说明: 机器人基础设施层，用于处理底层通信。
+
+
+* **Libfranka (驱动库)**
+* 地址: [https://github.com/frankarobotics/libfranka/tree/0.16.1](https://github.com/frankarobotics/libfranka/tree/0.16.1)
+* 版本要求: **0.16.1**
+
+
+* **Franka ROS**
+* 地址: [https://github.com/frankarobotics/franka_ros/tree/noetic-devel](https://github.com/frankarobotics/franka_ros/tree/noetic-devel)
+* 分支要求: **noetic-devel**
+
+
+* **SERL Franka Controllers**
+* 地址: [https://github.com/rail-berkeley/serl_franka_controllers](https://github.com/rail-berkeley/serl_franka_controllers)
+* 说明: 针对 SERL 优化的 Franka 控制器。
+
+
 
 ---
 
@@ -88,7 +118,7 @@ bash serl_robot_infra/robot_servers/launch_right_server.sh
 
 
 3. **验证状态**：
-终端应显示服务器启动成功。你可以尝试使用 `curl` 命令控制夹爪开合来验证连接。
+终端应显示服务器启动成功。你可以尝试使用 `curl` 命令控制夹爪开合来验证连接（见第 5 章）。
 
 ---
 
@@ -162,7 +192,7 @@ python ../../record_demos.py --exp_name ram_insertion --successes_needed 20
 
 ### 阶段三：策略训练与人工干预 (Policy Training)
 
-这是 HIL-SERL 的核心，需要同时开启两个终端运行 Actor 和 Learner。
+需要同时开启两个终端运行 Actor 和 Learner。
 
 1. **准备脚本**：
 编辑 `run_actor.sh` 和 `run_learner.sh`。
@@ -194,4 +224,59 @@ bash run_learner.sh
 * **教学原则**：不要全程代劳。只在它完全错误时纠正，随着熟练度提升，减少干预频率。
 * **预期时间**：约 **1.5 小时** 可达到接近 100% 成功率。
 
+
+
 ---
+
+## 5. 常用指令与故障排查
+
+### 夹爪控制与初始化
+
+**现象**：如果无法控制夹爪，大概率是夹爪未初始化。Franka 夹爪在上电或重启后，必须执行一次“回零（Homing）”操作，否则会忽略 Move 指令。
+
+1. **使用 ROS 进行 Homing (复位)**：
+```bash
+# 确保环境变量正确
+export ROS_MASTER_URI=http://localhost:11511
+
+# 执行复位
+rostopic pub /franka_gripper/homing/goal franka_gripper/HomingActionGoal "{}" --once
+
+```
+
+
+* *报错 invalid message type*？这通常是因为未 source 环境。请执行：
+```bash
+source /home/vla/franka_ws/devel/setup.bash  # 路径请根据实际情况调整
+
+```
+
+
+
+
+2. **使用 cURL 测试控制**：
+复位成功后，可使用以下命令测试：
+```bash
+# 张开夹爪
+curl -X POST 127.0.0.1:5000/open_gripper
+
+# 闭合夹爪
+curl -X POST 127.0.0.1:5000/close_gripper
+
+```
+
+
+
+### 进程清理
+
+如果遇到端口占用或 ROS 节点冲突，可以使用以下命令强制清理：
+
+```bash
+killall -9 roscore
+killall -9 rosmaster
+
+```
+
+```
+
+```
