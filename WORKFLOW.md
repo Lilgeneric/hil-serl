@@ -39,13 +39,14 @@ pip install pyrealsense2
 
 ```
 
-### 1.2 配置 USB 权限 (Udev Rules) 
+### 1.2 配置 USB 权限 (Udev Rules)
+
 仅仅安装 Python 包不足以让代码直接访问硬件，必须配置 Udev 规则，否则会报错（如 `RuntimeError: No device detected` 或权限拒绝）。
 
 1. **下载规则文件**：
 ```bash
-sudo curl -o /etc/udev/rules.d/99-realsense-libusb.rules [https://raw.githubusercontent.com/IntelRealSense/librealsense/master/config/99-realsense-libusb.rules](https://raw.githubusercontent.com/IntelRealSense/librealsense/master/config/99-realsense-libusb.rules)
-
+sudo curl -o /etc/udev/rules.d/99-realsense-libusb.rules \
+    https://raw.githubusercontent.com/IntelRealSense/librealsense/master/config/99-realsense-libusb.rules
 ```
 
 
@@ -62,12 +63,38 @@ sudo udevadm control --reload-rules && udevadm trigger
 
 ### 1.3 HIL-SERL 核心与驱动依赖
 
-请依次安装以下仓库，注意对应的分支和版本要求：
+#### 1.3.1 HIL-SERL 核心环境安装 (Installation)
 
-* **HIL-SERL 核心仓库**
-* 地址: [https://github.com/rail-berkeley/hil-serl](https://github.com/rail-berkeley/hil-serl)
-* 说明: 项目主代码库，请参考 README 的 "Overview and Code Structure" 部分。
+首先需要克隆主仓库并配置 Conda 环境。
 
+1. **创建 Conda 环境**：
+```bash
+conda create -n hilserl python=3.10
+conda activate hilserl
+
+```
+
+
+2. **安装 JAX (CUDA 支持)**：
+```bash
+pip install --upgrade "jax[cuda12_pip]==0.4.35" \
+    -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+
+```
+
+
+3. **安装 serl_launcher**：
+```bash
+cd serl_launcher
+pip install -e .
+pip install -r requirements.txt
+
+```
+
+
+#### 1.3.2 其他驱动与依赖仓库
+
+除了核心环境外，还需安装以下底层驱动：
 
 * **SERL Robot Infra**
 * 地址: [serl_robot_infra/README.md](https://github.com/rail-berkeley/hil-serl/blob/main/serl_robot_infra/README.md)
@@ -88,6 +115,20 @@ sudo udevadm control --reload-rules && udevadm trigger
 * 地址: [https://github.com/rail-berkeley/serl_franka_controllers](https://github.com/rail-berkeley/serl_franka_controllers)
 * 说明: 针对 SERL 优化的 Franka 控制器。
 
+
+#### 1.3.3 代码结构说明 (Code Structure)
+
+| 代码目录 (Directory) | 说明 (Description) |
+| --- | --- |
+| `examples` | 策略训练、演示数据采集、奖励分类器训练脚本 |
+| `serl_launcher` | HIL-SERL 的核心代码库 |
+| `serl_launcher.agents` | Agent 策略实现 (例如 SAC, BC) |
+| `serl_launcher.wrappers` | Gym 环境包装器 (Wrappers) |
+| `serl_launcher.data` | Replay Buffer (经验回放) 和数据存储 |
+| `serl_launcher.vision` | 视觉相关的模型和工具函数 |
+| `serl_robot_infra` | 真实机器人运行的基础设施代码 |
+| `serl_robot_infra.robot_servers` | 基于 Flask 的服务器，通过 ROS 向机器人发送指令 |
+| `serl_robot_infra.franka_env` | Franka 机器人的 Gym 环境 |
 
 
 ---
