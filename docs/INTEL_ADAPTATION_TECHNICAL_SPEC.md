@@ -1,9 +1,12 @@
 # HIL-SERL Learner 模块 Intel GPU 适配技术规格文档
 
-> **文档版本**: 1.0
-> **日期**: 2026-03-09
-> **交付**: Intel
-> **项目仓库**: https://github.com/rail-berkeley/hil-serl
+文档版本: 1.0
+
+日期: 2026-03-09
+
+交付: Intel
+
+项目仓库: https://github.com/rail-berkeley/hil-serl
 
 ---
 
